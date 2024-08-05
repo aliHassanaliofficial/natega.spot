@@ -22,26 +22,31 @@
             const formData = new FormData(event.target);
             const seating_no = formData.get('seating_no');
 
-            const response = await fetch('/.netlify/functions/searchStudent', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ seating_no })
-            });
+            try {
+                const response = await fetch('/.netlify/functions/searchStudent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ seating_no })
+                });
 
-            const student = await response.json();
-            const resultDiv = document.getElementById('result');
+                const resultDiv = document.getElementById('result');
 
-            if (response.ok) {
-                resultDiv.innerHTML = `
-                    <h2>Student Details</h2>
-                    <p>Arabic Name: ${student.arabic_name}</p>
-                    <p>Total Degree: ${student.total_degree}</p>
-                    <p>Student Case Description: ${student.student_case_desc}</p>
-                `;
-            } else {
-                resultDiv.innerHTML = `<p>No student found with that seating number.</p>`;
+                if (response.ok) {
+                    const student = await response.json();
+                    resultDiv.innerHTML = `
+                        <h2>Student Details</h2>
+                        <p>Arabic Name: ${student.arabic_name}</p>
+                        <p>Total Degree: ${student.total_degree}</p>
+                        <p>Student Case Description: ${student.student_case_desc}</p>
+                    `;
+                } else {
+                    const error = await response.json();
+                    resultDiv.innerHTML = `<p>${error.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Error fetching student:', error);
             }
         });
     </script>

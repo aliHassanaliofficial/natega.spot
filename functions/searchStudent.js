@@ -22,7 +22,7 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      body: 'Method Not Allowed',
+      body: JSON.stringify({ message: 'Method Not Allowed' }),
     };
   }
 
@@ -40,14 +40,14 @@ exports.handler = async (event, context) => {
     } else {
       return {
         statusCode: 404,
-        body: 'Student not found',
+        body: JSON.stringify({ message: 'Student not found' }),
       };
     }
   } catch (err) {
     console.error('Error searching for student:', err);
     return {
       statusCode: 500,
-      body: 'Error searching for student',
+      body: JSON.stringify({ message: 'Error searching for student' }),
     };
   }
 };
