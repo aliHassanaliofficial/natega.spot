@@ -22,7 +22,7 @@
             const formData = new FormData(event.target);
             const seating_no = formData.get('seating_no');
 
-            const response = await fetch('/search', {
+            const response = await fetch('/.netlify/functions/searchStudent', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
