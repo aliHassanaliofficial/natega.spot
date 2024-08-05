@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Student</title>
+    <link rel="stylesheet" href="stylesheets/style.css">
+</head>
+
+<body>
+    <h1>Search by Seating Number</h1>
+    <form id="searchForm">
+        <input type="number" name="seating_no" placeholder="Enter Seating Number" required>
+        <button type="submit">Search</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const seating_no = formData.get('seating_no');
+
+            const response = await fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ seating_no })
+            });
+
+            const student = await response.json();
+            const resultDiv = document.getElementById('result');
+
+            if (student) {
+                resultDiv.innerHTML = `
+                    <h2>Student Details</h2>
+                    <p>Arabic Name: ${student.arabic_name}</p>
+                    <p>Total Degree: ${student.total_degree}</p>
+                    <p>Student Case Description: ${student.student_case_desc}</p>
+                `;
+            } else {
+                resultDiv.innerHTML = `<p>No student found with that seating number.</p>`;
+            }
+        });
+    </script>
+</body>
+
+</html>
