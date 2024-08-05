@@ -33,7 +33,7 @@
             const student = await response.json();
             const resultDiv = document.getElementById('result');
 
-            if (student) {
+            if (response.ok) {
                 resultDiv.innerHTML = `
                     <h2>Student Details</h2>
                     <p>Arabic Name: ${student.arabic_name}</p>

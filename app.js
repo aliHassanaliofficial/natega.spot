@@ -1,57 +1,83 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const path = require('path');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+
+// Encode special characters in the password
+const uri = 'mongodb+srv://owner_admin:34899%40admin@thanawiaspotdb.wh8huwr.mongodb.net/nategaDB';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware to parse request body
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
-// Serve static HTML files
-app.use(express.static(path.join(__dirname, './public')));
-
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/nategaDB')
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
 
 // Define the schema
 const studentSchema = new mongoose.Schema({
-    seating_no: { type: Number, required: true },
-    arabic_name: { type: String, required: true },
-    total_degree: { type: Number, required: true },
-    student_case_desc: { type: String, required: true }
+  seating_no: { type: Number, required: true },
+  arabic_name: { type: String, required: true },
+  total_degree: { type: Number, required: true },
+  student_case_desc: { type: String, required: true }
 });
 
-// Define the model
-const Student = mongoose.model('natega', studentSchema, 'natega'); // Ensure collection name is 'natega'
+const Student = mongoose.model('Student', studentSchema);
 
-// Route to render the search form
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '/public/index.html'));
+// Middleware
+app.use(bodyParser.json());
+app.use(express.static('public')); // To serve static files from the "public" directory
+
+// API endpoints (example)
+app.get('/students', async (req, res) => {
+  try {
+    const students = await Student.find();
+    res.json(students);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching students' });
+  }
 });
 
-// Route to handle search request
+app.post('/students', async (req, res) => {
+  try {
+    const student = new Student(req.body);
+    await student.save();
+    res.status(201).json(student);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: 'Error creating student' });
+  }
+});
+
 app.post('/search', async (req, res) => {
-    const seating_no = parseInt(req.body.seating_no);
-    console.log('Searching for seating_no:', seating_no); // Debugging output
-    try {
-        const student = await Student.findOne({ seating_no: seating_no });
-        if (student) {
-            console.log('Student found:', student); // Debugging output
-        } else {
-            console.log('No student found with that seating number.'); // Debugging output
-        }
-        res.json(student);
-    } catch (err) {
-        console.error('Error finding student:', err); // Debugging output
-        res.status(500).send(err);
+  try {
+    const { seating_no } = req.body;
+    console.log(`Searching for student with seating_no: ${seating_no}`);
+    const student = await Student.findOne({ seating_no });
+    console.log(`Search result: ${student}`);
+    if (student) {
+      res.json(student);
+    } else {
+      res.status(404).json({ message: 'Student not found' });
     }
+  } catch (err) {
+    console.error('Error searching for student:', err);
+    res.status(500).json({ message: 'Error searching for student' });
+  }
 });
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server listening on port ${port}`);
 });
